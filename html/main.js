@@ -27,7 +27,7 @@ async function openImage(path, item, imageNumber, totalImages) {
     ${imageNumber < totalImages - 1 ? `<button onclick="navigateImage(${imageNumber + 1})" class="next">Next Image</button>` : ""}
     <p>${marked.parse(metadata.description)}</p>
     <p>Tags:<br><sect class='tag'>${metadata.tags.join(" </sect><sect class='tag'>")} </sect></p>
-    <div class="closeButton" onclick="document.getElementById('lightbox').style.top = '150%'"></div>
+    <img src="${closePng}" class="closeButton" onclick="document.getElementById('lightbox').style.top = '150%'"></img>
   `;
   twemoji.parse(lightbox);
 }

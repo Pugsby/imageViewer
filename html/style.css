@@ -33,7 +33,7 @@ img.gridImg:hover {
     overflow-y: auto;
     z-index: 999;
 }
-#lightbox img:not(.emoji),video {
+#lightbox img:not(.emoji):not(.closeButton),video {
     width: 100%;
     height: calc(100% - 150px);
     object-fit: contain;
@@ -78,7 +78,6 @@ button {
     position: absolute;
     top: 8px;
     right: 8px;
-    background-color: red;
     cursor: pointer;
 }
 .filename {

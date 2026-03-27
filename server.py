@@ -156,6 +156,10 @@ class Serv(BaseHTTPRequestHandler):
         except:
             sendError(self, 404, filePath + " not found.")
 
+os.makedirs(config["imagesPath"], exist_ok=True)
+os.makedirs(config["imagesPath"] + "/collection", exist_ok=True)
+os.makedirs("./cache", exist_ok=True)
+
 httpd = HTTPServer(('localhost', config["port"]), Serv)
 print("Server opened on port " + str(config["port"]))
 httpd.serve_forever()

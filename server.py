@@ -160,6 +160,6 @@ os.makedirs(config["imagesPath"], exist_ok=True)
 os.makedirs(config["imagesPath"] + "/collection", exist_ok=True)
 os.makedirs("./cache", exist_ok=True)
 
-httpd = HTTPServer(('localhost', config["port"]), Serv)
+httpd = HTTPServer(('0.0.0.0', config["port"]), Serv)
 print("Server opened on port " + str(config["port"]))
 httpd.serve_forever()

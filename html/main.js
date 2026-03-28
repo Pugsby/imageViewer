@@ -72,7 +72,7 @@ async function listCollections() {
     const collections = await response.json();
 
     for (const collection of collections) {
-      document.body.appendChild(createLabel(collection.name));
+      document.getElementById("imageGrid").appendChild(createLabel(collection.name));
 
       const images = collection.content.filter(item => item.type !== "json");
       for (const item of images) {
@@ -80,7 +80,7 @@ async function listCollections() {
         if (item.type == "folder") {
           totalImages = item.content.length;
         }
-        document.body.appendChild(createImage(getImageSrc(collection.name, item), collection.name + "/" + item.name, item, totalImages));
+        document.getElementById("imageGrid").appendChild(createImage(getImageSrc(collection.name, item), collection.name + "/" + item.name, item, totalImages));
       }
     }
   } catch (error) {

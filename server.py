@@ -3,6 +3,9 @@ import os
 import json
 import subprocess
 from pathlib import Path
+from PIL import Image
+from runScrapers import startScrapers
+startScrapers()
 
 config = {
     "port": 8282,
@@ -15,6 +18,10 @@ jsonPlaceholder = {
     "tags": ["untagged"],
     "artist": "Unknown"
 }
+
+IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")
+VIDEO_EXTS = (".mp4", ".webm", ".ogg")
+THUMB_HEIGHT = 512
 
 imagesRoute   = "/api/" + config["imagesPath"] + "/"
 metadataRoute = "/api/metadata/"
@@ -101,23 +108,41 @@ class Serv(BaseHTTPRequestHandler):
                 if "?" in rawPath:
                     rawPath, queryString = rawPath.split("?", 1)
 
-                if queryString == "thumbnail" and rawPath.lower().endswith((".mp4", ".webm", ".ogg")):
+                if queryString == "thumbnail":
                     cacheDir = "./cache"
                     os.makedirs(cacheDir, exist_ok=True)
-
-                    cacheFilename = rawPath.replace("/", "_") + ".jpg"
+                    cacheFilename = rawPath.replace("/", "_") + ".thumb.jpg"
                     cachePath = os.path.join(cacheDir, cacheFilename)
 
                     if not os.path.exists(cachePath):
-                        subprocess.run([
-                            "ffmpeg", "-i", config["imagesPath"] + "/" + rawPath,
-                            "-vframes", "1",
-                            "-q:v", "2",
-                            cachePath
-                        ], check=True, capture_output=True)
+                        sourcePath = config["imagesPath"] + "/" + rawPath
+                        lower = rawPath.lower()
+
+                        if lower.endswith(VIDEO_EXTS):
+                            subprocess.run([
+                                "ffmpeg", "-i", sourcePath,
+                                "-vframes", "1",
+                                "-vf", f"scale=-1:{THUMB_HEIGHT}",
+                                "-q:v", "2",
+                                cachePath
+                            ], check=True, capture_output=True)
+
+                        elif lower.endswith(IMAGE_EXTS):
+                            with Image.open(sourcePath) as img:
+                                w, h = img.size
+                                new_w = max(1, int(w * THUMB_HEIGHT / h))
+                                img = img.convert("RGB")
+                                img = img.resize((new_w, THUMB_HEIGHT), Image.LANCZOS)
+                                img.save(cachePath, "JPEG", quality=85)
 
                     with open(cachePath, "rb") as f:
                         fileToOpen = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "image/jpeg")
+                    self.end_headers()
+                    self.wfile.write(bytes(fileToOpen))
+                    return
+
                 else:
                     with open(config["imagesPath"] + "/" + rawPath, "rb") as f:
                         fileToOpen = f.read()
@@ -156,8 +181,10 @@ class Serv(BaseHTTPRequestHandler):
         except:
             sendError(self, 404, filePath + " not found.")
 
+imagesAlreadyExisted = os.path.exists(config["imagesPath"])
 os.makedirs(config["imagesPath"], exist_ok=True)
-os.makedirs(config["imagesPath"] + "/collection", exist_ok=True)
+if not imagesAlreadyExisted:
+    os.makedirs(config["imagesPath"] + "/collection", exist_ok=True)
 os.makedirs("./cache", exist_ok=True)
 
 httpd = HTTPServer(('0.0.0.0', config["port"]), Serv)

@@ -7,6 +7,8 @@ Image Viewer is a booru-inspired server made in python with a clean-looking clie
 - Basic metadata support
 - Multiple Collections
 - Multiple images (and videos) in one
+- Simple server-side plugin support
+
 ## JSON Metadata Format
 Metadata files must be placed next to images/videos in order to be read, the name of the json must be the same as the image (not including extension). If a image is in a multi-image post, you can either place the json file next to the image or give the multi-image post the metadata.
 ```
@@ -33,6 +35,7 @@ Installation is pretty easy, all you do is clone the repo. (Linux)
 ```
 git clone https://github.com/Pugsby/imageViewer
 cd imageViewer
+pip install -r requirements.txt
 ```
 ## Running
 Run the server by running server.py

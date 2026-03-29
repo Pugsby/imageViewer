@@ -7,7 +7,8 @@ Image Viewer is a booru-inspired server made in python with a clean-looking clie
 - Basic metadata support
 - Multiple Collections
 - Multiple images (and videos) in one
-- Simple server-side plugin support
+- Server-side plugin support
+- Plugin installation and config
 
 ## JSON Metadata Format
 Metadata files must be placed next to images/videos in order to be read, the name of the json must be the same as the image (not including extension). If a image is in a multi-image post, you can either place the json file next to the image or give the multi-image post the metadata.

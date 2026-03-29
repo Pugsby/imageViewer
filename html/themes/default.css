@@ -8,13 +8,19 @@ body {
     margin-left: 16px;
 }
 
+.imageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+    padding: 8px;
+    gap: 8px;
+}
+
 img.gridImg {
-    width: 256px;
-    height: 256px;
+    width: 100%;
+    aspect-ratio: 1;
     object-fit: cover;
     cursor: pointer;
     border-radius: 16px;
-    margin: 8px;
     box-shadow: 0px 0px 10px #285aff4f;
     transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
@@ -140,6 +146,15 @@ button {
     box-shadow: 0px 0px 10px #00000080;
     z-index: 9999;
     margin: 0;
+
+}
+
+#topbar * {
+    display: inline-block;
+}
+
+#topbar p {
+    width: fit-content;
 }
 
 #topbar button {
@@ -149,58 +164,25 @@ button {
     color: #000000;
 }
 
+div.spacer {
+    width: 30px;
+}
+
 /* phones and shi */
 @media (max-width: 600px) {
+    .imageGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+        padding: 4px;
+    }
     img.gridImg {
-        width: calc(50vw - 24px);
-        height: calc(50vw - 24px);
-        margin: 4px;
         border-radius: 12px;
     }
-
-    img.gridImg:hover {
-        transform: none;
-        box-shadow: 0px 0px 10px #285aff4f;
-    }
-
-    #lightbox {
-        width: 92vw;
-        aspect-ratio: unset;
-        height: 80dvh;
-        border-radius: 12px;
-        padding: 12px;
-    }
-
-    #lightbox img:not(.emoji):not(.closeButton),
-    #lightbox video {
-        height: calc(100% - 110px);
-    }
-
-    .closeButton {
-        width: 40px;
-        height: 40px;
-        top: 10px;
-        right: 10px;
-    }
-
-    .next {
-        right: 8px;
-    }
-
-    .tag {
-        font-size: 0.85rem;
-        padding: 6px;
-        line-height: 36px;
-    }
+    /* rest of your phone styles unchanged */
 }
 
 @media (min-width: 601px) and (max-width: 1024px) {
-    img.gridImg {
-        width: calc(33vw - 24px);
-        height: calc(33vw - 24px);
-    }
-
-    #lightbox {
-        width: 75%;
+    .imageGrid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }

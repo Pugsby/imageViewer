@@ -1,6 +1,10 @@
 function getImageSrc(collectionName, item) {
   const base = `api/images/${collectionName}/${item.name}`;
-  return (item.type === "folder" ? `${base}/${item.content[0].name}` : base) + "?thumbnail";
+  var tn = "?thumbnail"
+  if (item.type == "gif" && autoPlayGifs) {
+    tn = ""
+  }
+  return (item.type === "folder" ? `${base}/${item.content[0].name}` : base) + tn;
 }
 
 async function openImage(path, item, imageNumber, totalImages) {
@@ -74,13 +78,17 @@ async function listCollections() {
     for (const collection of collections) {
       document.getElementById("imageGrid").appendChild(createLabel(collection.name));
 
+      const grid = document.createElement("div");
+      grid.classList.add("imageGrid");
+      document.getElementById("imageGrid").appendChild(grid);
+
       const images = collection.content.filter(item => item.type !== "json");
       for (const item of images) {
         let totalImages = 0;
         if (item.type == "folder") {
           totalImages = item.content.length;
         }
-        document.getElementById("imageGrid").appendChild(createImage(getImageSrc(collection.name, item), collection.name + "/" + item.name, item, totalImages));
+        grid.appendChild(createImage(getImageSrc(collection.name, item), collection.name + "/" + item.name, item, totalImages));
       }
     }
   } catch (error) {
@@ -88,4 +96,4 @@ async function listCollections() {
   }
 }
 
-listCollections();
+listCollections();  

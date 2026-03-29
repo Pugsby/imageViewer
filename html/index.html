@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Viewer</title>
-        
+    <title>[BRANDING]</title>    
     <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <script>
+        var autoPlayGifs = localStorage.getItem("apGifs") || false
+    </script>
 </head>
 <body>
     <div id="topbar">
         <button id="clientSettings">Client Settings</button>
+        <div class="spacer"></div>
+        <p>[BRANDING]</p>        
     </div>
     <div id="imageGrid">
 
     </div>
     <div id="lightbox"></div>
+    <script src="settings.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
     <script src="close.png.js"></script>
     <script src="main.js"></script>
-    <script src="settings.js"></script>
 </body>
 </html>

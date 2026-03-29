@@ -2,15 +2,46 @@ import importlib.util
 import threading
 import time
 import os
+import json
+import re
+import sys
 
-def loadScraper(path):
-    spec = importlib.util.spec_from_file_location("scraper", path)
+def _camel_to_upper_snake(s: str) -> str:
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
+    s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+    return s2.upper()
+
+
+def inject_settings(mod, settings: dict):
+    if not settings:
+        return
+    # Inject each setting as-is and as UPPER_SNAKE (for constants like CLIENT_ID)
+    for k, v in settings.items():
+        try:
+            setattr(mod, k, v)
+        except Exception:
+            pass
+        try:
+            setattr(mod, _camel_to_upper_snake(k), v)
+        except Exception:
+            pass
+
+
+def loadScraper(path, settings=None):
+    # Create a unique module name per scraper file to avoid collisions and
+    # ensure the module is available in sys.modules under its real name.
+    base = os.path.splitext(os.path.basename(path))[0]
+    module_name = f"scraper_{base}"
+    spec = importlib.util.spec_from_file_location(module_name, path)
     mod = importlib.util.module_from_spec(spec)
+    # Register before executing so the module can access itself via sys.modules[__name__]
+    sys.modules[module_name] = mod
     spec.loader.exec_module(mod)
+    inject_settings(mod, settings or {})
     return mod
 
-def runScraperLoop(path):
-    mod = loadScraper(path)
+def runScraperLoop(path, settings=None):
+    mod = loadScraper(path, settings)
     lastMtime = os.path.getmtime(path)
     interval = getattr(mod, "interval", 3600)
 
@@ -19,7 +50,7 @@ def runScraperLoop(path):
             currentMtime = os.path.getmtime(path)
             if currentMtime != lastMtime:
                 print(f"[scrapers] Reloading {os.path.basename(path)}")
-                mod = loadScraper(path)
+                mod = loadScraper(path, settings)
                 lastMtime = currentMtime
                 interval = getattr(mod, "interval", 3600)
 
@@ -33,10 +64,18 @@ def runScraperLoop(path):
 def startScrapers():
     scraperDir = "./scrapers"
     os.makedirs(scraperDir, exist_ok=True)
+    # Load settings file (per-scraper)
+    config_path = os.path.join('.', 'scraperSettings.json')
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+    except Exception:
+        config = {}
 
     for filename in os.listdir(scraperDir):
         if filename.endswith(".py") and not filename.startswith("_"):
             path = os.path.join(scraperDir, filename)
-            t = threading.Thread(target=runScraperLoop, args=(path,), daemon=True)
+            settings = config.get(filename, {})
+            t = threading.Thread(target=runScraperLoop, args=(path, settings), daemon=True)
             t.start()
             print(f"[runScrapers.py] Started {filename}")

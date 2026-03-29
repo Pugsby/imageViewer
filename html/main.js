@@ -1,3 +1,21 @@
+const clientVersion = "13w26a vanilla";
+const updateNotice = document.getElementById("update");
+
+function checkVersion() {
+  fetch("api/serverVersion")
+    .then(response => response.text().then(text => {
+      console.log(text, response);
+      return JSON.parse(text).version;
+    }))
+    .then(serverVersion => {
+      updateNotice.innerText = clientVersion
+      if (serverVersion !== clientVersion) {
+        updateNotice.style.display = "block";
+        updateNotice.innerHTML = `Client: ${clientVersion} | Server: ${serverVersion}<br>Get new update at <a href="https://github.com/Pugsby/imageViewer">the github repo.</a>`;
+      }
+    }
+)}
+checkVersion();
 function getImageSrc(collectionName, item) {
   const base = `api/images/${collectionName}/${item.name}`;
   var tn = "?thumbnail"

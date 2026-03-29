@@ -27,6 +27,8 @@ IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")
 VIDEO_EXTS = (".mp4", ".webm", ".ogg")
 THUMB_HEIGHT = 512
 
+serverVersion = "13w26a vanilla"
+
 imagesRoute   = "/api/" + config["imagesPath"] + "/"
 metadataRoute = "/api/metadata/"
 
@@ -204,6 +206,12 @@ class Serv(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith("/api"):
+            if self.path == "/api/serverVersion":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(bytes(json.dumps({"version": serverVersion}), 'utf-8'))
+                return
             if self.path.startswith("/api/remotePlugins"):
                 if not client_is_local(self):
                     sendError(self, 403, "Plugins are restricted to localhost")

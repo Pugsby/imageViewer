@@ -197,12 +197,21 @@ div.spacer {
     padding-left: 24px;
     padding-right: 24px;
 }
-/* make search type selector look pretty */
 #searchType option {
     background-color: #00000083;
     color: white;
 }
-
+#update {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: ffffff4f;
+    font-size: smaller;
+}
+a {
+    color: #285aff;
+    text-decoration: none;
+}
 
 /* phones and shi */
 @media (max-width: 600px) {

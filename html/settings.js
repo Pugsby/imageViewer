@@ -37,7 +37,7 @@ async function loadPlugins() {
 
             const img = document.createElement('img')
             img.src = p.thumbnail
-            img.style.width = '500px'
+            img.style.width = '400px'
             img.style.height = '130px'
             img.style.objectFit = 'cover'
             img.style.borderRadius = '8px'

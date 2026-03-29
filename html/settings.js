@@ -54,6 +54,30 @@ async function loadPlugins() {
                 installed.innerText = 'Installed'
                 installed.style.marginBottom = '4px'
                 actions.appendChild(installed)
+
+                const updateBtn = document.createElement('button')
+                updateBtn.style.marginRight = '4px'
+                if (p.updateAvailable) {
+                    updateBtn.innerText = 'Update'
+                    updateBtn.onclick = async () => {
+                        updateBtn.disabled = true
+                        updateBtn.innerText = 'Updating...'
+                        try {
+                            const r = await fetch('/api/updatePlugin', {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({file: p.file})})
+                            if (!r.ok) throw new Error('Update failed')
+                            updateBtn.innerText = 'Updated'
+                            await loadPlugins()
+                        } catch (e) {
+                            updateBtn.innerText = 'Error'
+                            updateBtn.disabled = false
+                        }
+                    }
+                } else {
+                    updateBtn.innerText = 'Up to date'
+                    updateBtn.disabled = true
+                }
+                actions.appendChild(updateBtn)
+
                 const editBtn = document.createElement('button')
                 editBtn.innerText = 'Edit Config'
                 editBtn.onclick = () => { showConfigEditor(p) }

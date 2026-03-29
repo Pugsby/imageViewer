@@ -121,4 +121,33 @@ body {
     margin-right: 20px;
 }
 
+#searchInput {
+    background-color: #ffffff;
+    border: 1px solid #999;
+    outline: none;
+    padding: 8px 24px;
+    color: #2f2e31;
+    font-family: inherit;
+    cursor: text;
+    min-width: 44px;
+    margin-left: 24px;
+    height: 33px;
+}
+
+#searchType {
+    background-color: #ffffff;
+    border: 1px solid #999;
+    outline: none;
+    padding: 8px 20px;
+    color: #2f2e31;
+    font-family: inherit;
+    cursor: pointer;
+    height: 33px;
+}
+
+#searchType option {
+    background-color: #ffffff;
+    color: #2f2e31;
+}
+
 /* there's no better feeling than sucking furry toes ong  */

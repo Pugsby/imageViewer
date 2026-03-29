@@ -13,7 +13,18 @@
     <div id="topbar">
         <button id="clientSettings">Settings</button>
         <div class="spacer"></div>
-        <p>[BRANDING]</p>        
+        <p>[BRANDING]</p>
+        <div class="spacer"></div>
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search...">
+            <select name="type" id="searchType">
+                <option value="all" selected>All</option>
+                <option value="name">Name</option>
+                <option value="description">Description</option>
+                <option value="tags">Tags</option>
+                <option value="artist">Artist</option>   
+            </select>
+        </form>
     </div>
     <div id="imageGrid">
 

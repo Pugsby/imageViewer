@@ -9,6 +9,7 @@ Image Viewer is a booru-inspired server made in python with a clean-looking clie
 - Multiple images (and videos) in one
 - Server-side plugin support
 - Plugin installation and config
+- Search support
 
 ## JSON Metadata Format
 Metadata files must be placed next to images/videos in order to be read, the name of the json must be the same as the image (not including extension). If a image is in a multi-image post, you can either place the json file next to the image or give the multi-image post the metadata.
@@ -31,6 +32,15 @@ Returns a requested image. (Ex: /api/images/collection/image.png)
 Returns the metadata for a image. (Ex: /api/metadata/collection/image.png.json)
 ### [GET] /api/lsImages
 Returns the tree of the images folder.
+### [GET] /api/search
+Returns search results for a specified query and type.
+### [POST] /api/installPlugin
+Installs a plugin from the plugin repository.
+### [POST] /api/configPlugin
+Configures a plugin with the given config.
+### [POST] /api/updatePlugin
+Updates a plugin to the latest version.
+
 ## Installation
 Installation is pretty easy, all you do is clone the repo. (Linux)
 ```

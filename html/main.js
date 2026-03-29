@@ -68,13 +68,19 @@ async function getMetadata(path, item) {
   }
 }
 
-async function listCollections() {
+async function listCollections(search) {
   try {
-    const response = await fetch("api/lsImages");
+    var url = "api/lsImages";
+    if (search) {
+      url = "api/search";
+      url += "?q=" + search.query + "&type=" + search.type;
+    }
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
     const collections = await response.json();
 
+    document.getElementById("imageGrid").innerHTML = "";
     for (const collection of collections) {
       document.getElementById("imageGrid").appendChild(createLabel(collection.name));
 
@@ -96,4 +102,11 @@ async function listCollections() {
   }
 }
 
-listCollections();  
+document.getElementById("searchForm").onsubmit = function(event) {
+  event.preventDefault();
+  const query = document.getElementById("searchInput").value;
+  const type = document.getElementById("searchType").options[document.getElementById("searchType").selectedIndex].value;
+  listCollections({ query, type });
+}
+
+listCollections();

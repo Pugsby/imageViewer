@@ -30,6 +30,45 @@ THUMB_HEIGHT = 512
 imagesRoute   = "/api/" + config["imagesPath"] + "/"
 metadataRoute = "/api/metadata/"
 
+def search(query, searchType, limitTo="all"):
+    results = []
+    foldersToCheck = []
+    if limitTo != "all":
+        limitPath = config["imagesPath"] + "/" + limitTo
+        if os.path.exists(limitPath) and os.path.isdir(limitPath):
+            foldersToCheck.append(limitPath)
+    else:
+        for entry in os.scandir(config["imagesPath"]):
+            if entry.is_dir():
+                foldersToCheck.append(entry.path)
+    
+    for folder in foldersToCheck:
+        folder_result = {"type": "folder", "name": folder.split("/")[-1], "content": []}
+        results.append(folder_result)
+        for entry in os.scandir(folder):
+            if entry.is_file() and entry.name.lower().endswith(IMAGE_EXTS + VIDEO_EXTS):
+                entryUrl = os.path.relpath(entry.path, config["imagesPath"]).replace("\\", "/")
+                md = getImageMD("/" + entryUrl)
+                match = False
+                if searchType in ("name", "all") and query.lower() in md.get("name", "").lower():
+                    match = True
+                elif searchType in ("description", "all") and query.lower() in md.get("description", "").lower():
+                    match = True
+                elif searchType in ("artist", "all") and query.lower() in md.get("artist", "").lower():
+                    match = True
+                elif searchType in ("tags", "all") and any(query.lower() in tag.lower() for tag in md.get("tags", [])):
+                    match = True
+                
+                if match:
+                    ext = os.path.splitext(entry.name)[1].lstrip(".") or "file"
+                    folder_result["content"].append({
+                        "name": entry.name,
+                        "type": ext
+                    })
+    results = [r for r in results if r["content"]]
+    
+    return results
+
 def sendError(self, code, note):
     self.send_response(code)
     self.end_headers()
@@ -99,13 +138,37 @@ def jsonLs(path):
     return items
 
 
-# Plugin repo raw bases to try (listing.json is under ivsPluginRepo/listing.json)
 RAW_BASES = [
     "https://raw.githubusercontent.com/Pugsby/ivsPluginRepo/main/ivsPluginRepo",
     "https://raw.githubusercontent.com/Pugsby/ivsPluginRepo/main",
 ]
 
 SCRAPER_SETTINGS = "scraperSettings.json"
+
+
+def parse_plugin_version(content):
+    patterns = [
+        r'__version__\s*=\s*["\']([^"\']+)["\']',
+        r'VERSION\s*=\s*["\']([^"\']+)["\']',
+        r'version\s*=\s*["\']([^"\']+)["\']',
+    ]
+    for pat in patterns:
+        m = re.search(pat, content)
+        if m:
+            return m.group(1)
+    return None
+
+
+def get_local_plugin_version(fname):
+    path = os.path.join('scrapers', fname)
+    if not os.path.isfile(path):
+        return None
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return parse_plugin_version(f.read())
+    except Exception:
+        return None
+
 
 def load_scraper_settings():
     try:
@@ -114,12 +177,12 @@ def load_scraper_settings():
     except Exception:
         return {}
 
+
 def client_is_local(handler):
     try:
         ip = handler.client_address[0]
     except Exception:
         return False
-    # allow IPv4 localhost and IPv6 loopback
     return ip == '127.0.0.1' or ip == '::1'
 
 def save_scraper_settings(data):
@@ -127,7 +190,6 @@ def save_scraper_settings(data):
         json.dump(data, f, indent=4)
 
 def fetch_remote(path):
-    # Try each base until we get a 200
     for base in RAW_BASES:
         url = base.rstrip("/") + "/" + path.lstrip("/")
         try:
@@ -142,7 +204,6 @@ class Serv(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith("/api"):
-            # Remote plugins listing
             if self.path.startswith("/api/remotePlugins"):
                 if not client_is_local(self):
                     sendError(self, 403, "Plugins are restricted to localhost")
@@ -164,6 +225,14 @@ class Serv(BaseHTTPRequestHandler):
                     installed = os.path.exists(os.path.join("scrapers", fname))
                     cfg = settings.get(fname, p.get("defaultConfig", {}))
                     thumb = p.get("image", "")
+                    remote_version = p.get("version")
+                    local_version = get_local_plugin_version(fname) if installed else None
+                    update_available = bool(installed and remote_version and local_version and remote_version != local_version)
+
+                    # if there's no version metadata, allow manual update in UI for installed plugin
+                    if installed and not remote_version:
+                        update_available = True
+
                     plugins.append({
                         "file": fname,
                         "name": p.get("name"),
@@ -171,7 +240,10 @@ class Serv(BaseHTTPRequestHandler):
                         "author": p.get("author"),
                         "installed": installed,
                         "config": cfg,
-                        "thumbnail": "/api/pluginThumb?path=" + quote_plus(thumb)
+                        "thumbnail": "/api/pluginThumb?path=" + quote_plus(thumb),
+                        "remoteVersion": remote_version,
+                        "localVersion": local_version,
+                        "updateAvailable": update_available,
                     })
 
                 self.send_response(200)
@@ -180,12 +252,10 @@ class Serv(BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps({"serverPlugins": plugins}), 'utf-8'))
                 return
 
-            # Proxy a plugin thumbnail from remote repo
             elif self.path.startswith("/api/pluginThumb"):
                 if not client_is_local(self):
                     sendError(self, 403, "Plugins are restricted to localhost")
                     return
-                # parse ?path=...
                 parsed = urlparse(self.path)
                 qs = parse_qs(parsed.query)
                 path = qs.get('path', [''])[0]
@@ -204,7 +274,6 @@ class Serv(BaseHTTPRequestHandler):
                 self.wfile.write(r.content)
                 return
 
-            # Get plugin config for installed plugin
             elif self.path.startswith("/api/pluginConfig"):
                 if not client_is_local(self):
                     sendError(self, 403, "Plugins are restricted to localhost")
@@ -218,7 +287,6 @@ class Serv(BaseHTTPRequestHandler):
                 settings = load_scraper_settings()
                 cfg = settings.get(fname)
                 if cfg is None:
-                    # return empty or default
                     self.send_response(404)
                     self.end_headers()
                     self.wfile.write(bytes(json.dumps({}), 'utf-8'))
@@ -229,7 +297,23 @@ class Serv(BaseHTTPRequestHandler):
                 self.wfile.write(bytes(json.dumps(cfg), 'utf-8'))
                 return
             if self.path.startswith("/api/search"):
-                sendError(self, 501, self.path + " is not yet implemented.")
+                # sendError(self, 501, self.path + " is not yet implemented.")
+                # self.path IS implemented :surprisedCat:
+                # get the search query from url params "query" and "type"
+                query = parse_qs(urlparse(self.path).query).get("q", [""])[0].lower()
+                searchType = parse_qs(urlparse(self.path).query).get("type", [""])[0].lower()
+                supportedQueryTypes = ["name", "tags", "artist", "description", "all"]
+                limitTo = parse_qs(urlparse(self.path).query).get("limitTo", ["all"])[0].lower()
+                if searchType not in supportedQueryTypes:
+                    sendError(self, 400, "Invalid search type")
+                    return
+                print("Searching for '" + query + "' in " + searchType)
+                results = search(query, searchType, limitTo)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(bytes(json.dumps(results), 'utf-8'))
+                return
 
             elif self.path.startswith(imagesRoute):
                 rawPath = self.path[len(imagesRoute):]
@@ -314,7 +398,6 @@ class Serv(BaseHTTPRequestHandler):
             sendError(self, 404, filePath + " not found.")
 
     def do_POST(self):
-        # Simple JSON body parser
         length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(length).decode('utf-8') if length > 0 else ''
         try:
@@ -330,7 +413,6 @@ class Serv(BaseHTTPRequestHandler):
             if not fname:
                 sendError(self, 400, 'Missing file')
                 return
-            # fetch plugin source from remote server folder
             r = fetch_remote('server/' + fname)
             if not r:
                 sendError(self, 502, 'Could not fetch plugin source')
@@ -343,10 +425,8 @@ class Serv(BaseHTTPRequestHandler):
             except Exception as e:
                 sendError(self, 500, f'Could not write plugin: {e}')
                 return
-            # Optionally add default config
             settings = load_scraper_settings()
             if fname not in settings:
-                # try to fetch listing to find default config
                 lr = fetch_remote('listing.json')
                 if lr:
                     try:
@@ -361,6 +441,34 @@ class Serv(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(bytes(json.dumps({'ok': True, 'installed': fname}), 'utf-8'))
+            return
+
+        if self.path.startswith('/api/updatePlugin'):
+            if not client_is_local(self):
+                sendError(self, 403, "Plugins are restricted to localhost")
+                return
+            fname = data.get('file')
+            if not fname:
+                sendError(self, 400, 'Missing file')
+                return
+            target = os.path.join('scrapers', fname)
+            if not os.path.exists(target):
+                sendError(self, 404, 'Plugin not installed')
+                return
+            r = fetch_remote('server/' + fname)
+            if not r:
+                sendError(self, 502, 'Could not fetch plugin source')
+                return
+            try:
+                with open(target, 'wb') as f:
+                    f.write(r.content)
+            except Exception as e:
+                sendError(self, 500, f'Could not write plugin: {e}')
+                return
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(bytes(json.dumps({'ok': True, 'updated': fname}), 'utf-8'))
             return
 
         if self.path.startswith('/api/pluginConfig'):
@@ -385,7 +493,6 @@ class Serv(BaseHTTPRequestHandler):
             self.wfile.write(bytes(json.dumps({'ok': True}), 'utf-8'))
             return
 
-        # unknown POST
         sendError(self, 404, 'Unknown POST ' + self.path)
 
 imagesAlreadyExisted = os.path.exists(config["imagesPath"])

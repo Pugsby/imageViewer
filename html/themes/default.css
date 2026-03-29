@@ -168,6 +168,42 @@ div.spacer {
     width: 30px;
 }
 
+#searchInput {
+    background-color: #00000083;
+    border: none;
+    border-radius: 1000000000px;
+    outline: none;
+    padding: 4px;
+    color: white;
+    font-family: inherit;
+    cursor: text;
+    min-height: 44px;
+    min-width: 44px;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+#searchType {
+    background-color: #00000016;
+    border: none;
+    border-radius: 1000000000px;
+    outline: none;
+    padding: 4px;
+    color: white;
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+/* make search type selector look pretty */
+#searchType option {
+    background-color: #00000083;
+    color: white;
+}
+
+
 /* phones and shi */
 @media (max-width: 600px) {
     .imageGrid {
@@ -178,7 +214,11 @@ div.spacer {
     img.gridImg {
         border-radius: 12px;
     }
-    /* rest of your phone styles unchanged */
+    #lightbox {
+        width: 90%;
+        height: 90%;
+        padding: 8px;
+    }
 }
 
 @media (min-width: 601px) and (max-width: 1024px) {

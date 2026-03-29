@@ -5,6 +5,9 @@ import os
 import json
 import re
 import sys
+disableScrapers = False # use this when you don't wanna ratelimit yourself during development, (or when a scraper fucks up the server somehow)
+if disableScrapers:
+    print("! Scrapers are disabled. Turn them back on when pushing to the repo !")
 
 def _camel_to_upper_snake(s: str) -> str:
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
@@ -15,7 +18,6 @@ def _camel_to_upper_snake(s: str) -> str:
 def inject_settings(mod, settings: dict):
     if not settings:
         return
-    # Inject each setting as-is and as UPPER_SNAKE (for constants like CLIENT_ID)
     for k, v in settings.items():
         try:
             setattr(mod, k, v)
@@ -28,13 +30,10 @@ def inject_settings(mod, settings: dict):
 
 
 def loadScraper(path, settings=None):
-    # Create a unique module name per scraper file to avoid collisions and
-    # ensure the module is available in sys.modules under its real name.
     base = os.path.splitext(os.path.basename(path))[0]
     module_name = f"scraper_{base}"
     spec = importlib.util.spec_from_file_location(module_name, path)
     mod = importlib.util.module_from_spec(spec)
-    # Register before executing so the module can access itself via sys.modules[__name__]
     sys.modules[module_name] = mod
     spec.loader.exec_module(mod)
     inject_settings(mod, settings or {})
@@ -62,9 +61,10 @@ def runScraperLoop(path, settings=None):
         time.sleep(interval)
 
 def startScrapers():
+    if disableScrapers:
+        return
     scraperDir = "./scrapers"
     os.makedirs(scraperDir, exist_ok=True)
-    # Load settings file (per-scraper)
     config_path = os.path.join('.', 'scraperSettings.json')
     try:
         with open(config_path, 'r') as f:

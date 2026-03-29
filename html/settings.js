@@ -1,6 +1,8 @@
 document.getElementById("clientSettings").onclick = function () {
     console.log("open settings")
     document.getElementById("lightbox").style.top = "50%"
+    const host = window.location.hostname
+    const pluginAllowed = host === 'localhost' || host === '127.0.0.1' || host === '::1'
     document.getElementById("lightbox").innerHTML = `
     <img src="${closePng}" class="closeButton" onclick="document.getElementById('lightbox').style.top = '150%'"></img>
     <h2 style="margin-bottom: 0px; margin-top: 4px">Theme</h2>
@@ -11,11 +13,11 @@ document.getElementById("clientSettings").onclick = function () {
     <p> <button id="toggleSwitchAPG" onclick="toggleAPG()"></button> Autoplay GIFs in grid</p>
     <br>
     <h2 class="noMargin">Plugins</h2>
-    <div id="pluginList">Loading plugins…</div>
+    <div id="pluginList">${pluginAllowed ? 'Loading plugins…' : 'Plugins disabled — available only on localhost'}</div>
     <p>Note: Please edit config of installed plugins and restart the server when you're ready to use them.</p>
     `
     document.getElementById("toggleSwitchAPG").innerText = autoPlayGifs
-    loadPlugins()
+    if (pluginAllowed) loadPlugins()
     console.log(autoPlayGifs)
 }
 

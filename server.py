@@ -114,6 +114,14 @@ def load_scraper_settings():
     except Exception:
         return {}
 
+def client_is_local(handler):
+    try:
+        ip = handler.client_address[0]
+    except Exception:
+        return False
+    # allow IPv4 localhost and IPv6 loopback
+    return ip == '127.0.0.1' or ip == '::1'
+
 def save_scraper_settings(data):
     with open(SCRAPER_SETTINGS, "w") as f:
         json.dump(data, f, indent=4)
@@ -136,6 +144,9 @@ class Serv(BaseHTTPRequestHandler):
         if self.path.startswith("/api"):
             # Remote plugins listing
             if self.path.startswith("/api/remotePlugins"):
+                if not client_is_local(self):
+                    sendError(self, 403, "Plugins are restricted to localhost")
+                    return
                 r = fetch_remote("listing.json")
                 if not r:
                     sendError(self, 502, "Could not fetch plugin listing from remote repo")
@@ -171,6 +182,9 @@ class Serv(BaseHTTPRequestHandler):
 
             # Proxy a plugin thumbnail from remote repo
             elif self.path.startswith("/api/pluginThumb"):
+                if not client_is_local(self):
+                    sendError(self, 403, "Plugins are restricted to localhost")
+                    return
                 # parse ?path=...
                 parsed = urlparse(self.path)
                 qs = parse_qs(parsed.query)
@@ -192,6 +206,9 @@ class Serv(BaseHTTPRequestHandler):
 
             # Get plugin config for installed plugin
             elif self.path.startswith("/api/pluginConfig"):
+                if not client_is_local(self):
+                    sendError(self, 403, "Plugins are restricted to localhost")
+                    return
                 parsed = urlparse(self.path)
                 qs = parse_qs(parsed.query)
                 fname = qs.get('file', [''])[0]
@@ -306,6 +323,9 @@ class Serv(BaseHTTPRequestHandler):
             data = {}
 
         if self.path.startswith('/api/installPlugin'):
+            if not client_is_local(self):
+                sendError(self, 403, "Plugins are restricted to localhost")
+                return
             fname = data.get('file')
             if not fname:
                 sendError(self, 400, 'Missing file')
@@ -344,6 +364,9 @@ class Serv(BaseHTTPRequestHandler):
             return
 
         if self.path.startswith('/api/pluginConfig'):
+            if not client_is_local(self):
+                sendError(self, 403, "Plugins are restricted to localhost")
+                return
             fname = data.get('file')
             cfg = data.get('config')
             if not fname or cfg is None:

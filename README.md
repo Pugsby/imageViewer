@@ -40,6 +40,8 @@ Installs a plugin from the plugin repository.
 Configures a plugin with the given config.
 ### [POST] /api/updatePlugin
 Updates a plugin to the latest version.
+### [GET] /api/fard
+does literally nothing
 
 ## Installation
 Installation is pretty easy, all you do is clone the repo. (Linux)

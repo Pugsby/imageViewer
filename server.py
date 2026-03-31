@@ -4,10 +4,10 @@ import json
 import subprocess
 from pathlib import Path
 from PIL import Image
+import requests # the location of this exact import fixes a deadlock somehow, python is fucking awful :sob:
 from runScrapers import startScrapers
 startScrapers()
 
-import requests
 from urllib.parse import unquote, quote_plus, urlparse, parse_qs
 
 config = {
@@ -27,7 +27,7 @@ IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")
 VIDEO_EXTS = (".mp4", ".webm", ".ogg")
 THUMB_HEIGHT = 512
 
-serverVersion = "13w26a vanilla"
+serverVersion = "13w26b vanilla"
 
 imagesRoute   = "/api/" + config["imagesPath"] + "/"
 metadataRoute = "/api/metadata/"
@@ -388,6 +388,13 @@ class Serv(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(bytes(json.dumps(fileToOpen), 'utf-8'))
 
+            elif self.path.startswith("/api/error/"):
+                code = self.path[len("/api/error/"):]
+                sendError(self, int(code), "Nothing is wrong. " + code)
+
+            else:
+                sendError(self, 501, "Unknown API endpoint " + self.path)
+            
             return
 
         filePath = "/html" + self.path

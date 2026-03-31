@@ -1,4 +1,4 @@
-const clientVersion = "13w26a vanilla";
+const clientVersion = "13w26b vanilla";
 const updateNotice = document.getElementById("update");
 
 function checkVersion() {

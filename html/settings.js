@@ -8,6 +8,7 @@ document.getElementById("clientSettings").onclick = function () {
     <h2 style="margin-bottom: 0px; margin-top: 4px">Theme</h2>
     <button class="noMargin" onclick="theme('themes/default.css')">Default</button>
     <button class="noMargin" onclick="theme('themes/simple.css')">Simple</button>
+    <button class="noMargin" onclick="theme('themes/ai.css')">AI</button>
     <br><br>
     <h2 class="noMargin">Image Settings</h2>
     <p> <button id="toggleSwitchAPG" onclick="toggleAPG()"></button> Autoplay GIFs in grid</p>

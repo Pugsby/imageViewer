@@ -1,0 +1,6 @@
+images
+impData/images
+impData/__pycache__
+impData/cache
+scraperSettings.json
+impData/scrapers/*

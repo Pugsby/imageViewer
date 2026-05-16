@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[BRANDING]</title>    
+    <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <script>
+        var autoPlayGifs = localStorage.getItem("apGifs") || false
+    </script>
+</head>
+<body>
+    <div id="topbar">
+        <button id="clientSettings">Settings</button>
+        <div class="spacer"></div>
+        <p>[BRANDING]</p>
+        <div class="spacer"></div>
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search...">
+            <select name="type" id="searchType">
+                <option value="all" selected>All</option>
+                <option value="name">Name</option>
+                <option value="description">Description</option>
+                <option value="tags">Tags</option>
+                <option value="artist">Artist</option>   
+            </select>
+        </form>
+    </div>
+    <p id="update"></p>
+    <div id="imageGrid">
+
+    </div>
+    <div id="lightbox"></div>
+    <script src="settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+    <script src="close.png.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

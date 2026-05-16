@@ -24,6 +24,7 @@ Metadata files must be placed next to images/videos in order to be read, the nam
 Metadata is completely optional and is not needed.
 ## Usage
 Add images and videos to imageViewer/images/collection. You can change the name of this folder and even add multiple collections. You can also add multiple images in one post by adding each image into a new subfolder.
+
 ## API
 The API is very simple, there's very few endpoints.
 ### [GET] /api/images/
@@ -40,22 +41,17 @@ Installs a plugin from the plugin repository.
 Configures a plugin with the given config.
 ### [POST] /api/updatePlugin
 Updates a plugin to the latest version.
-### [GET] /api/fard
-does literally nothing
 
 ## Installation
 Installation is pretty easy, all you do is clone the repo. (Linux)
 ```
 git clone https://github.com/Pugsby/imageViewer
 cd imageViewer
-pip install -r requirements.txt
 ```
 ## Running
-Run the server by running server.py
-```
-python server.py
-```
+Run the server by running start.sh or start.bat depending on your system./n
 You can view your images through http://localhost:8282/
+
 ## Planned Features
 - Blacklist and Whitelist support
 - Administration Features
